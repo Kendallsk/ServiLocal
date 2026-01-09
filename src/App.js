@@ -1,9 +1,34 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
+import ProviderDashboard from './pages/ProviderDashboard';
 
 function App() {
-  const isLoggedIn = localStorage.getItem('adminLoggedIn') === 'true';
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Carga el usuario inicial desde localStorage
+  useEffect(() => {
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+      setCurrentUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  // Escucha cambios en localStorage (para cuando cambies de usuario sin recargar)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const storedUser = localStorage.getItem('currentUser');
+      if (storedUser) {
+        setCurrentUser(JSON.parse(storedUser));
+      } else {
+        setCurrentUser(null);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   return (
     <Router>
@@ -11,7 +36,11 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route
           path="/admin"
-          element={isLoggedIn ? <AdminDashboard /> : <Navigate to="/login" />}
+          element={currentUser && currentUser.rol === 'admin' ? <AdminDashboard /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/provider"
+          element={currentUser && currentUser.rol === 'prestador' ? <ProviderDashboard /> : <Navigate to="/login" />}
         />
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>

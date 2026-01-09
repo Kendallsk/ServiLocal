@@ -9,28 +9,32 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
+  setLoading(true);
 
-    try {
-      const res = await axios.post('http://localhost:3000/api/auth/login', {
-        username,
-        password
-      });
+  try {
+    const res = await axios.post('http://localhost:3000/api/auth/login', {
+      username,
+      password
+    });
 
-      if (res.data.success) {
-        localStorage.setItem('adminLoggedIn', 'true');
-        localStorage.setItem('adminName', res.data.admin.nombre || 'Administrador');
+    if (res.data.success) {
+      localStorage.setItem('currentUser', JSON.stringify(res.data.user));
+      window.dispatchEvent(new Event('storage'));
+      if (res.data.user.rol === 'admin') {
         navigate('/admin');
+      } else {
+        navigate('/provider');
       }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Error al conectar con el servidor');
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (err) {
+    setError(err.response?.data?.message || 'Error al conectar');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div style={{
@@ -54,17 +58,15 @@ const Login = () => {
         <div style={{
           width: '120px',
           height: '120px',
-          backgroundImage: "url('/src/images/LogoServiLocal.png')",
+          backgroundImage: "url('/images/LogoServiLocal.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
           borderRadius: '50%',
           margin: '0 auto 20px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white',
-          fontSize: '50px',
-          fontWeight: 'bold'
+          justifyContent: 'center'
         }}>
-        
         </div>
         <h1 style={{
           fontSize: '36px',
@@ -77,7 +79,7 @@ const Login = () => {
           ServiLocal
         </h1>
         <h2 style={{color: '#555', marginBottom: '30px'}}>
-          Panel de Administración
+    
         </h2>
         <form onSubmit={handleSubmit}>
           <input
@@ -128,9 +130,23 @@ const Login = () => {
           >
             {loading ? 'Ingresando...' : 'Iniciar Sesión'}
           </button>
+          <div style={{marginTop: '20px'}}>
+          <span style={{color: '#555'}}>¿No tienes cuenta? </span>
+          <a 
+            href="/register" 
+            style={{
+              color: '#00bcd4',
+              fontWeight: 'bold',
+              textDecoration: 'none'
+            }}
+            onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
+            onMouseOut={(e) => e.target.style.textDecoration = 'none'}
+          >
+            Registrarse
+          </a>
+        </div>
         </form>
         <p style={{marginTop: '20px', fontSize: '12px', color: '#777'}}>
-          Usuario: admin | Contraseña: servilocal2026
         </p>
       </div>
     </div>

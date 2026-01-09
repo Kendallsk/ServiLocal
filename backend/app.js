@@ -7,7 +7,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Conexión a MySQL (XAMPP: root sin contraseña)
 const pool = mysql.createPool({
   host: 'localhost',
   user: 'root',
@@ -26,7 +25,7 @@ app.post('/api/auth/login', async (req, res) => {
 
   try {
     const [rows] = await pool.query(
-      'SELECT * FROM administradores WHERE username = ? AND password = ?',
+      'SELECT * FROM usuarios WHERE username = ? AND password = ?',
       [username, password]
     );
 
@@ -34,10 +33,16 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ message: 'Credenciales incorrectas' });
     }
 
+    const user = rows[0];
+
     res.json({
       success: true,
       message: 'Login exitoso',
-      admin: { nombre: rows[0].nombre }
+      user: {
+        id: user.id,
+        nombre: user.nombre,
+        rol: user.rol
+      }
     });
   } catch (error) {
     console.error(error);

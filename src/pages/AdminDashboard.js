@@ -7,6 +7,7 @@ const AdminDashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem('adminLoggedIn');
     localStorage.removeItem('adminName');
+    window.dispatchEvent(new Event('storage'));
     navigate('/login');
   };
 
