@@ -7,34 +7,39 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false); // ← Esto soluciona el error no-undef
   const navigate = useNavigate();
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError('');
-  setLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-  try {
-    const res = await axios.post('http://localhost:3000/api/auth/login', {
-      username,
-      password
-    });
+    try {
+      const res = await axios.post('http://localhost:3000/api/auth/login', {
+        username,
+        password
+      });
 
-    if (res.data.success) {
-      localStorage.setItem('currentUser', JSON.stringify(res.data.user));
-      window.dispatchEvent(new Event('storage'));
-      if (res.data.user.rol === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/provider');
-      }
+      if (res.data.success) {
+          localStorage.setItem('currentUser', JSON.stringify(res.data.user));
+          window.dispatchEvent(new Event('storage'));
+          
+          if (res.data.user.rol === 'admin') {
+            navigate('/admin');
+          } else if (res.data.user.rol === 'cliente') {
+            navigate('/cliente');
+          } else {
+            navigate('/provider');
+          }
+        }
+
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error al conectar');
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    setError(err.response?.data?.message || 'Error al conectar');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div style={{
@@ -54,20 +59,17 @@ const Login = () => {
         maxWidth: '400px',
         textAlign: 'center'
       }}>
-        {/* Logo oficial placeholder */}
+        {/* Logo oficial */}
         <div style={{
-          width: '120px',
-          height: '120px',
-          backgroundImage: "url('/images/LogoServiLocal.png')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          borderRadius: '50%',
-          margin: '0 auto 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-        </div>
+        width: '120px',
+        height: '120px',
+        backgroundImage: "url(/images/LogoServiLocal.png)",  // ← Ruta correcta desde public/
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        borderRadius: '50%',
+        margin: '0 auto 20px'
+      }}></div>
+
         <h1 style={{
           fontSize: '36px',
           background: 'linear-gradient(to right, #00bcd4, #ff9800)',
@@ -78,9 +80,9 @@ const Login = () => {
         }}>
           ServiLocal
         </h1>
-        <h2 style={{color: '#555', marginBottom: '30px'}}>
-    
-        </h2>
+
+        
+
         <form onSubmit={handleSubmit}>
           <input
             type="text"
@@ -112,7 +114,7 @@ const Login = () => {
             }}
             required
           />
-          {error && <p style={{color: 'red', margin: '15px 0'}}>{error}</p>}
+          {error && <p style={{ color: 'red', margin: '15px 0' }}>{error}</p>}
           <button
             type="submit"
             disabled={loading}
@@ -130,24 +132,110 @@ const Login = () => {
           >
             {loading ? 'Ingresando...' : 'Iniciar Sesión'}
           </button>
-          <div style={{marginTop: '20px'}}>
-          <span style={{color: '#555'}}>¿No tienes cuenta? </span>
-          <a 
-            href="/register" 
-            style={{
-              color: '#00bcd4',
-              fontWeight: 'bold',
-              textDecoration: 'none'
-            }}
-            onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
-            onMouseOut={(e) => e.target.style.textDecoration = 'none'}
-          >
-            Registrarse
-          </a>
-        </div>
+
+          {/* Enlace Registrarse */}
+          <div style={{ marginTop: '20px', fontSize: '14px' }}>
+            <span style={{ color: '#555' }}>¿No tienes cuenta? </span>
+            <span
+              onClick={() => setShowModal(true)}
+              style={{
+                color: '#00bcd4',
+                fontWeight: 'bold',
+                textDecoration: 'none',
+                cursor: 'pointer'
+              }}
+              onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
+              onMouseOut={(e) => e.target.style.textDecoration = 'none'}
+            >
+              Registrarse
+            </span>
+          </div>
         </form>
-        <p style={{marginTop: '20px', fontSize: '12px', color: '#777'}}>
-        </p>
+
+        {/* Modal de selección */}
+        {showModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            background: 'rgba(0,0,0,0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}>
+            <div style={{
+              background: 'white',
+              padding: '40px',
+              borderRadius: '16px',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+              textAlign: 'center',
+              width: '90%',
+              maxWidth: '500px'
+            }}>
+              <h2 style={{ marginBottom: '30px', color: '#333' }}>
+                ¿Cómo te quieres registrar?
+              </h2>
+
+              <button
+                onClick={() => {
+                  setShowModal(false);
+                  navigate('/register/cliente');
+                }}
+                style={{
+                  width: '100%',
+                  padding: '15px',
+                  marginBottom: '15px',
+                  background: 'linear-gradient(to right, #00bcd4, #ff9800)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer'
+                }}
+              >
+                Como Cliente
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowModal(false);
+                  navigate('/register/prestador');
+                }}
+                style={{
+                  width: '100%',
+                  padding: '15px',
+                  background: 'linear-gradient(to right, #00bcd4, #ff9800)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer'
+                }}
+              >
+                Como Prestador
+              </button>
+
+              <button
+                onClick={() => setShowModal(false)}
+                style={{
+                  marginTop: '20px',
+                  background: 'none',
+                  border: 'none',
+                  color: '#777',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

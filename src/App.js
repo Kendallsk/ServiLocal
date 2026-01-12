@@ -3,6 +3,11 @@ import { useState, useEffect } from 'react';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import ProviderDashboard from './pages/ProviderDashboard';
+import Register from './pages/Register';
+import RegisterCliente from './pages/RegisterCliente';
+import ClientDashboard from './pages/ClientDashboard';
+
+
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -33,7 +38,10 @@ function App() {
   return (
     <Router>
       <Routes>
+        
+        
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route
           path="/admin"
           element={currentUser && currentUser.rol === 'admin' ? <AdminDashboard /> : <Navigate to="/login" />}
@@ -42,7 +50,21 @@ function App() {
           path="/provider"
           element={currentUser && currentUser.rol === 'prestador' ? <ProviderDashboard /> : <Navigate to="/login" />}
         />
+
+        <Route
+            path="/cliente"
+            element={
+              currentUser && currentUser.rol === 'cliente' 
+                ? <ClientDashboard /> 
+                : <Navigate to="/login" />
+            }
+          />
+
         <Route path="*" element={<Navigate to="/login" />} />
+
+        <Route path="/register/cliente" element={<RegisterCliente />} />
+        <Route path="/register/prestador" element={<Register />} />
+
       </Routes>
     </Router>
   );
