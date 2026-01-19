@@ -104,6 +104,66 @@ app.post('/api/auth/register/prestador', async (req, res) => {
   }
 });
 
+// Obtener todos los usuarios
+app.get('/api/usuarios', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT id, nombre, username, rol FROM usuarios ORDER BY id DESC');
+    res.json({ usuarios: rows });
+  } catch (error) {
+    console.error('Error al obtener usuarios:', error);
+    res.status(500).json({ message: 'Error al obtener usuarios' });
+  }
+});
+
+// Obtener prestadores
+app.get('/api/prestadores', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT id, nombre, username, oficio, ciudad FROM usuarios WHERE rol = "prestador" ORDER BY id DESC');
+    res.json({ prestadores: rows });
+  } catch (error) {
+    console.error('Error al obtener prestadores:', error);
+    res.status(500).json({ message: 'Error al obtener prestadores' });
+  }
+});
+
+// Obtener estadísticas
+app.get('/api/estadisticas', async (req, res) => {
+  try {
+    const [totalUsuarios] = await pool.query('SELECT COUNT(*) as count FROM usuarios');
+    const [totalPrestadores] = await pool.query('SELECT COUNT(*) as count FROM usuarios WHERE rol = "prestador"');
+    const [totalClientes] = await pool.query('SELECT COUNT(*) as count FROM usuarios WHERE rol = "cliente"');
+    
+    res.json({
+      estadisticas: {
+        totalUsuarios: totalUsuarios[0].count,
+        totalPrestadores: totalPrestadores[0].count,
+        totalClientes: totalClientes[0].count
+      }
+    });
+  } catch (error) {
+    console.error('Error al obtener estadísticas:', error);
+    res.status(500).json({ message: 'Error al obtener estadísticas' });
+  }
+});
+
+// Eliminar usuario
+app.delete('/api/usuarios/:id', async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    const [result] = await pool.query('DELETE FROM usuarios WHERE id = ?', [id]);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    
+    res.json({ success: true, message: 'Usuario eliminado' });
+  } catch (error) {
+    console.error('Error al eliminar usuario:', error);
+    res.status(500).json({ message: 'Error al eliminar usuario' });
+  }
+});
+
 const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`Backend corriendo en http://localhost:${PORT}`);
