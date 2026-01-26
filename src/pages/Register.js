@@ -1,18 +1,21 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
-
+import { useNavigate } from 'react-router-dom';
+import RegisterForm from '../components/RegisterForm';
 
 const Register = () => {
   const [formData, setFormData] = useState({
     nombre: '',
+    cedula: '',
     username: '',
     password: '',
     telefono: '',
     oficio: '',
     ciudad: '',
+    direccion: '',
     horario: ''
   });
+
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,12 +27,14 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
     setLoading(true);
+    setError('');
 
     try {
-     const res = await axios.post('http://localhost:3000/api/auth/register/prestador', formData);
+      const res = await axios.post(
+        'http://localhost:3000/api/auth/register/prestador',
+        formData
+      );
 
       if (res.data.success) {
         setSuccess('Registro exitoso. Tu cuenta está pendiente de aprobación.');
@@ -45,61 +50,28 @@ const Register = () => {
   return (
     <div className="container">
       <div className="card">
-       <div style={{
-                width: '120px',
-                height: '120px',
-                backgroundImage: "url(/images/LogoServiLocal.png)",  // ← Ruta correcta desde public/
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                borderRadius: '50%',
-                margin: '0 auto 20px'
-            }}></div>
+        {/* Logo */}
+        <div style={{
+          width: '120px',
+          height: '120px',
+          backgroundImage: "url(/images/LogoServiLocal.png)",
+          backgroundSize: 'cover',
+          borderRadius: '50%',
+          margin: '0 auto 20px'
+        }} />
 
-     <h1 style={{
-          fontSize: '36px',
-          background: 'linear-gradient(to right, #00bcd4, #ff9800)',
-          WebkitBackgroundClip: 'text',
-          backgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          marginBottom: '10px'
-        }}>
-          ServiLocal
-        </h1>
-
+        <h1 className="gradient-title">ServiLocal</h1>
         <h2 className="subtitle">Registro de Prestador</h2>
 
         {success && <p className="success-msg">{success}</p>}
 
-        <form onSubmit={handleSubmit}>
-          <input name="nombre" placeholder="Nombre completo" value={formData.nombre} onChange={handleChange} className="input-field" required />
-          <input name="username" placeholder="Usuario" value={formData.username} onChange={handleChange} className="input-field" required />
-          <input name="password" type="password" placeholder="Contraseña" value={formData.password} onChange={handleChange} className="input-field" required />
-          <input name="telefono" placeholder="Teléfono" value={formData.telefono} onChange={handleChange} className="input-field" required />
-          <input name="oficio" placeholder="Oficio (ej. Plomero, Electricista)" value={formData.oficio} onChange={handleChange} className="input-field" required />
-          <input name="ciudad" placeholder="Ciudad" value={formData.ciudad} onChange={handleChange} className="input-field" required />
-          <input name="horario" placeholder="Horario de atención" value={formData.horario} onChange={handleChange} className="input-field" required />
-
-          {error && <p className="error-msg">{error}</p>}
-
-          <button type="submit" disabled={loading} className="btn-primary">
-            {loading ? 'Registrando...' : 'Registrarse'}
-          </button>
-        </form>
-
-        <div className="mt-5 text-sm">
-         <Link
-          to="/login"
-          style={{
-            color: '#00bcd4',
-            fontWeight: 'bold',
-            textDecoration: 'none'
-          }}
-          onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
-          onMouseOut={(e) => e.target.style.textDecoration = 'none'}
-        >
-          ← Volver al login
-        </Link>
-        </div>
+        <RegisterForm
+          formData={formData}
+          handleChange={handleChange}
+          handleSubmit={handleSubmit}
+          loading={loading}
+          error={error}
+        />
       </div>
     </div>
   );

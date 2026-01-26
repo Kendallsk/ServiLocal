@@ -7,7 +7,6 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false); // ← Esto soluciona el error no-undef
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -137,7 +136,7 @@ const Login = () => {
           <div style={{ marginTop: '20px', fontSize: '14px' }}>
             <span style={{ color: '#555' }}>¿No tienes cuenta? </span>
             <span
-              onClick={() => setShowModal(true)}
+              onClick={() => navigate('/register')}
               style={{
                 color: '#00bcd4',
                 fontWeight: 'bold',
@@ -151,91 +150,6 @@ const Login = () => {
             </span>
           </div>
         </form>
-
-        {/* Modal de selección */}
-        {showModal && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            background: 'rgba(0,0,0,0.6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000
-          }}>
-            <div style={{
-              background: 'white',
-              padding: '40px',
-              borderRadius: '16px',
-              boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-              textAlign: 'center',
-              width: '90%',
-              maxWidth: '500px'
-            }}>
-              <h2 style={{ marginBottom: '30px', color: '#333' }}>
-                ¿Cómo te quieres registrar?
-              </h2>
-
-              <button
-                onClick={() => {
-                  setShowModal(false);
-                  navigate('/register/cliente');
-                }}
-                style={{
-                  width: '100%',
-                  padding: '15px',
-                  marginBottom: '15px',
-                  background: 'linear-gradient(to right, #00bcd4, #ff9800)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '18px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer'
-                }}
-              >
-                Como Cliente
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowModal(false);
-                  navigate('/register/prestador');
-                }}
-                style={{
-                  width: '100%',
-                  padding: '15px',
-                  background: 'linear-gradient(to right, #00bcd4, #ff9800)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '18px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer'
-                }}
-              >
-                Como Prestador
-              </button>
-
-              <button
-                onClick={() => setShowModal(false)}
-                style={{
-                  marginTop: '20px',
-                  background: 'none',
-                  border: 'none',
-                  color: '#777',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
