@@ -7,9 +7,9 @@ const SearchBar = ({ searchQuery, setSearchQuery }) => {
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         style={{
-          width: '60%',
+          width: '40%',
           maxWidth: '600px',
-          padding: '16px',
+          padding: '9px',
           fontSize: '20px',
           border: '2px solid #00bcd4',
           borderRadius: '50px'
