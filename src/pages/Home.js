@@ -5,18 +5,11 @@ import HeroMap from '../components/HeroMap';
 import SearchBar from '../components/SearchBar';
 import CategoryCarousel from '../components/CategoryCarousel';
 
+import ServiceShowcase from '../components/ServiceShowcase';
 
 
-const Home = () => {
-  const [searchQuery, setSearchQuery] = useState('');
 
-  // Centro del mapa (default: Latacunga)
-  const [mapCenter, setMapCenter] = useState({
-    lat: -0.2208,
-    lng: -78.5123,
-  });
-
-  // Categorías
+ // Categorías
   const categorias = [
     {
     id: 1,
@@ -66,6 +59,21 @@ const Home = () => {
   },
   ];
 
+const Home = () => {
+  
+   
+  const [activeCategory, setActiveCategory] = useState(categorias[0]);
+  
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Centro del mapa (default: Latacunga)
+  const [mapCenter, setMapCenter] = useState({
+    lat: -0.2208,
+    lng: -78.5123,
+  });
+
+ 
+
   const filteredCategorias = categorias.filter(cat =>
     cat.nombre.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -108,10 +116,16 @@ useEffect(() => {
 
   return (
     <>
-      <Header />
+      <Header activeCategory={activeCategory} />
       <HeroMap mapCenter={mapCenter} markers={markers} />
-      <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-      <CategoryCarousel categorias={filteredCategorias} />
+      <ServiceShowcase
+          categorias={filteredCategorias}
+          activeCategory={activeCategory}
+          setActiveCategory={setActiveCategory}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
+
 
     </>
   );
