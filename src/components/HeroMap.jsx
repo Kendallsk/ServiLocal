@@ -1,8 +1,8 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { useEffect } from 'react';
+import { motion } from 'framer-motion';
 import 'leaflet/dist/leaflet.css';
 
-// Hace zoom y centra cuando cambia la ubicación
 const ChangeView = ({ center }) => {
   const map = useMap();
 
@@ -16,43 +16,59 @@ const ChangeView = ({ center }) => {
   return null;
 };
 
-const HeroMap = ({ mapCenter, markers }) => {
+const HeroMap = ({ mapCenter, markers, activeCategory }) => {
   return (
     <section
       style={{
         position: 'relative',
         height: '100vh',
         marginTop: '80px',
+        padding: '0 32px',
+        overflow: 'hidden',
       }}
     >
-      {/* Overlay degradado (NO bloquea el mapa) */}
+      {/* Fondo dinámico (igual que ServiceShowcase) */}
+      <motion.div
+        key={activeCategory?.id}
+        initial={{ opacity: 0.4, scale: 1.05 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6 }}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: `url(${activeCategory?.image})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          zIndex: 0,
+        }}
+      />
+
+      {/* Overlay oscuro */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(to right, #00bcd4, #ff9800)',
-          opacity: 0.15,
+          background:
+            'linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.3))',
           zIndex: 1,
-          pointerEvents: 'none', // 🔥 CLAVE
         }}
       />
 
-      {/* Texto (NO bloquea el mapa) */}
+      {/* Texto central */}
       <div
         style={{
           position: 'absolute',
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          zIndex: 2,
+          zIndex: 3,
           textAlign: 'center',
           color: 'white',
-          textShadow: '0 2px 10px rgba(0,0,0,0.7)',
           maxWidth: '800px',
-          padding: '20px',
+          padding: '24px',
           background: 'rgba(0,0,0,0.35)',
           borderRadius: '16px',
-          pointerEvents: 'none', // 🔥 CLAVE
+          pointerEvents: 'none',
         }}
       >
         <h2 style={{ fontSize: '48px', marginBottom: '16px' }}>
@@ -63,30 +79,37 @@ const HeroMap = ({ mapCenter, markers }) => {
         </p>
       </div>
 
-      {/* MAPA (interactivo) */}
-      <MapContainer
-        center={[mapCenter.lat, mapCenter.lng]}
-        zoom={13}
+      {/* Contenedor del mapa */}
+      <div
         style={{
+          position: 'relative',
+          zIndex: 2,
           width: '100%',
           height: '100%',
-          zIndex: 0,
+          borderRadius: '24px',
+          overflow: 'hidden',
         }}
-        scrollWheelZoom={true}
       >
-        <ChangeView center={mapCenter} />
+        <MapContainer
+          center={[mapCenter.lat, mapCenter.lng]}
+          zoom={13}
+          style={{ width: '100%', height: '100%' }}
+          scrollWheelZoom
+        >
+          <ChangeView center={mapCenter} />
 
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="© OpenStreetMap contributors"
-        />
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution="© OpenStreetMap contributors"
+          />
 
-        {markers.map((m, i) => (
-          <Marker key={i} position={[m.position.lat, m.position.lng]}>
-            <Popup>{m.title}</Popup>
-          </Marker>
-        ))}
-      </MapContainer>
+          {markers.map((m, i) => (
+            <Marker key={i} position={[m.position.lat, m.position.lng]}>
+              <Popup>{m.title}</Popup>
+            </Marker>
+          ))}
+        </MapContainer>
+      </div>
     </section>
   );
 };

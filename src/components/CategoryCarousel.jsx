@@ -5,8 +5,6 @@ import ServiceCard from './ServiceCard';
 const CategoryCarousel = ({
   categorias = [],
   onSelectCategory,
-  activeCategory,
-  compact = false,
 }) => {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: 'start',
@@ -21,13 +19,7 @@ const CategoryCarousel = ({
     if (!emblaApi) return;
     setCanPrev(emblaApi.canScrollPrev());
     setCanNext(emblaApi.canScrollNext());
-
-    // Obtener el índice del primer elemento visible
-    const selectedIndex = emblaApi.selectedScrollSnap();
-    if (categorias[selectedIndex]) {
-      onSelectCategory?.(categorias[selectedIndex]);
-    }
-  }, [emblaApi, categorias, onSelectCategory]);
+  }, [emblaApi]);
 
   useEffect(() => {
     if (!emblaApi) return;
@@ -39,31 +31,20 @@ const CategoryCarousel = ({
   if (categorias.length === 0) return null;
 
   const handleScroll = (direction) => {
-    if (direction === 'next') {
-      emblaApi?.scrollNext();
-    } else {
-      emblaApi?.scrollPrev();
-    }
+    if (direction === 'next') emblaApi?.scrollNext();
+    else emblaApi?.scrollPrev();
   };
 
   return (
-    <div
-      style={{
-        position: 'relative',
-        width: '100%',
-      }}
-    >
+    <div style={{ position: 'relative', width: '100%' }}>
       {/* Carrusel */}
       <div ref={emblaRef} style={{ overflow: 'hidden' }}>
         <div style={{ display: 'flex', gap: '16px' }}>
           {categorias.map((cat) => (
             <div
               key={cat.id}
-              style={{
-                flex: '0 0 calc(33.333% - 10.67px)',
-              }}
-              onClick={() => onSelectCategory?.(cat)}
-              onMouseEnter={() => onSelectCategory?.(cat)}
+              style={{ flex: '0 0 calc(33.333% - 10px)' }}
+              onClick={() => onSelectCategory(cat)} // ✅ SOLO CLICK
             >
               <ServiceCard
                 title={cat.nombre}
@@ -76,43 +57,39 @@ const CategoryCarousel = ({
       </div>
 
       {/* Flechas */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '12px',
-          marginTop: '16px',
-        }}
+      <button
+        onClick={() => handleScroll('prev')}
+        disabled={!canPrev}
+        style={arrowStyle('left', canPrev)}
       >
-        <button
-          onClick={() => handleScroll('prev')}
-          disabled={!canPrev}
-          style={navButtonStyle(canPrev)}
-        >
-          ◀
-        </button>
+        ❮
+      </button>
 
-        <button
-          onClick={() => handleScroll('next')}
-          disabled={!canNext}
-          style={navButtonStyle(canNext)}
-        >
-          ▶
-        </button>
-      </div>
+      <button
+        onClick={() => handleScroll('next')}
+        disabled={!canNext}
+        style={arrowStyle('right', canNext)}
+      >
+        ❯
+      </button>
     </div>
   );
 };
 
-const navButtonStyle = (enabled) => ({
-  width: '36px',
-  height: '36px',
+const arrowStyle = (side, enabled) => ({
+  position: 'absolute',
+  top: '50%',
+  [side]: '-18px',
+  transform: 'translateY(-50%)',
+  width: '38px',
+  height: '38px',
   borderRadius: '50%',
   border: 'none',
-  background: enabled ? '#00bcd4' : '#ccc',
+  background: enabled ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0.25)',
   color: 'white',
-  fontSize: '16px',
+  fontSize: '18px',
   cursor: enabled ? 'pointer' : 'not-allowed',
+  backdropFilter: 'blur(4px)',
 });
 
 export default CategoryCarousel;
