@@ -75,7 +75,7 @@ const Header = ({ activeCategory }) => {
 
         {/* CTA */}
         <Link
-          to="/register/prestador"
+          to="/login"
           style={{
             padding: '8px 20px',
             background: 'linear-gradient(to right, #00bcd4, #ff9800)',

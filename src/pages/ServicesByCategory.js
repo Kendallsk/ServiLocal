@@ -9,12 +9,19 @@ const ServicesByCategory = () => {
   const [prestadores, setPrestadores] = useState([]);
   const [selected, setSelected] = useState(null);
 
-  useEffect(() => {
-    fetch(`http://localhost:3000/api/prestadores?oficio=${categoria}`)
-      .then(res => res.json())
-      .then(data => setPrestadores(data))
-      .catch(console.error);
-  }, [categoria]);
+useEffect(() => {
+  fetch(`http://localhost:5000/api/prestadores?oficio=${categoria}`)
+    .then(res => res.json())
+    .then(data => {
+      // 🔒 PROTECCIÓN TOTAL
+      setPrestadores(data.prestadores || []);
+    })
+    .catch(err => {
+      console.error(err);
+      setPrestadores([]);
+    });
+}, [categoria]);
+
 
   const img =
     "https://st3.depositphotos.com/14807954/19325/i/450/depositphotos_193252528-stock-photo-a-young-man-mimicing-against.jpg";

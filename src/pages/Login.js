@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import axiosPublic from '../api/axiosPublic';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -15,24 +15,34 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', {
+      const res = await axiosPublic.post('/api/auth/login', {
         username,
         password
       });
 
       if (res.data.success) {
-          localStorage.setItem('currentUser', JSON.stringify(res.data.user));
-          window.dispatchEvent(new Event('storage'));
-          
-          if (res.data.user.rol === 'admin') {
-            navigate('/admin');
-          } else if (res.data.user.rol === 'cliente') {
-            navigate('/cliente');
-          } else {
-            navigate('/provider');
-          }
-        }
+        const user = res.data.user;
 
+        localStorage.setItem(
+          'currentUser',
+          JSON.stringify({
+            id: user.id,
+            nombre: user.nombre,
+            rol: user.rol
+          })
+        );
+
+        // Notificar a App.js
+        window.dispatchEvent(new Event('storage'));
+
+        if (user.rol === 'admin') {
+          navigate('/admin');
+        } else if (user.rol === 'cliente') {
+          navigate('/cliente');
+        } else {
+          navigate('/provider');
+        }
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Error al conectar');
     } finally {
@@ -58,29 +68,26 @@ const Login = () => {
         maxWidth: '400px',
         textAlign: 'center'
       }}>
-        {/* Logo oficial */}
+        {/* Logo */}
         <div style={{
-        width: '120px',
-        height: '120px',
-        backgroundImage: "url(/images/LogoServiLocal.png)",  // ← Ruta correcta desde public/
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        borderRadius: '50%',
-        margin: '0 auto 20px'
-      }}></div>
+          width: '120px',
+          height: '120px',
+          backgroundImage: "url(/images/LogoServiLocal.png)",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          borderRadius: '50%',
+          margin: '0 auto 20px'
+        }} />
 
         <h1 style={{
           fontSize: '36px',
           background: 'linear-gradient(to right, #00bcd4, #ff9800)',
           WebkitBackgroundClip: 'text',
-          backgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           marginBottom: '10px'
         }}>
           ServiLocal
         </h1>
-
-        
 
         <form onSubmit={handleSubmit}>
           <input
@@ -88,32 +95,33 @@ const Login = () => {
             placeholder="Usuario"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            required
             style={{
               width: '100%',
               padding: '12px',
               margin: '10px 0',
               border: '1px solid #ccc',
-              borderRadius: '8px',
-              fontSize: '16px'
+              borderRadius: '8px'
             }}
-            required
           />
+
           <input
             type="password"
             placeholder="Contraseña"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
             style={{
               width: '100%',
               padding: '12px',
               margin: '10px 0',
               border: '1px solid #ccc',
-              borderRadius: '8px',
-              fontSize: '16px'
+              borderRadius: '8px'
             }}
-            required
           />
-          {error && <p style={{ color: 'red', margin: '15px 0' }}>{error}</p>}
+
+          {error && <p style={{ color: 'red' }}>{error}</p>}
+
           <button
             type="submit"
             disabled={loading}
@@ -132,19 +140,15 @@ const Login = () => {
             {loading ? 'Ingresando...' : 'Iniciar Sesión'}
           </button>
 
-          {/* Enlace Registrarse */}
           <div style={{ marginTop: '20px', fontSize: '14px' }}>
-            <span style={{ color: '#555' }}>¿No tienes cuenta? </span>
+            <span>¿No tienes cuenta? </span>
             <span
               onClick={() => navigate('/register')}
               style={{
                 color: '#00bcd4',
                 fontWeight: 'bold',
-                textDecoration: 'none',
                 cursor: 'pointer'
               }}
-              onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
-              onMouseOut={(e) => e.target.style.textDecoration = 'none'}
             >
               Registrarse
             </span>

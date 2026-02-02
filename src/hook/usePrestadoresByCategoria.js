@@ -1,25 +1,25 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 const usePrestadoresByCategoria = (categoria) => {
   const [prestadores, setPrestadores] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!categoria) return;
 
     const fetchPrestadores = async () => {
-      setLoading(true);
-      setError(null);
-
       try {
-        const response = await axios.get(
-          `http://localhost:3000/api/prestadores?oficio=${categoria}`
+        const res = await axios.get(
+          `http://localhost:5000/api/prestadores/categoria/${categoria}`
         );
-        setPrestadores(response.data);
+
+        // 👇 IMPORTANTE
+        setPrestadores(res.data.prestadores || []);
       } catch (err) {
-        setError('Error al obtener los prestadores');
+        setError("Error al cargar prestadores");
+        setPrestadores([]);
       } finally {
         setLoading(false);
       }

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import RegisterForm from '../components/RegisterForm';
+import axiosPublic from '../api/axiosPublic';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -31,14 +32,14 @@ const Register = () => {
     setError('');
 
     try {
-      const res = await axios.post(
-        'http://localhost:3000/api/auth/register/prestador',
-        formData
-      );
+      const res = await axiosPublic.post(
+  '/api/auth/register/prestador',
+  formData
+);
 
       if (res.data.success) {
         setSuccess('Registro exitoso. Tu cuenta está pendiente de aprobación.');
-        setTimeout(() => navigate('/login'), 3000);
+        setTimeout(() => navigate('/login'), 5000);
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Error al registrar');

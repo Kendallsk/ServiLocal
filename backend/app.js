@@ -8,10 +8,10 @@ app.use(cors());
 app.use(express.json());
 
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASS || '',
-  database: process.env.DB_NAME || 'servilocal2',
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'servilocal',
   waitForConnections: true,
   connectionLimit: 10,
 });
@@ -90,40 +90,22 @@ app.get('/api/prestadores', async (req, res) => {
   const { oficio } = req.query;
 
   try {
-    const [rows] = await pool.query(
-      `SELECT nombre, telefono, ciudad, direccion 
-       FROM usuarios 
-       WHERE rol='prestador' AND oficio=?`,
-      [oficio]
-    );
+    let query = 'SELECT * FROM usuarios WHERE rol="prestador"';
+    const params = [];
 
-    res.json(rows);
-  } catch {
-    res.status(500).json({ message: 'Error del servidor' });
-  }
-}
+    if (oficio) {
+      query += ' AND oficio = ?';
+      params.push(oficio);
+    }
 
-// Obtener todos los usuarios
-app.get('/api/usuarios', async (req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT id, nombre, username, rol FROM usuarios ORDER BY id DESC');
-    res.json({ usuarios: rows });
-  } catch (error) {
-    console.error('Error al obtener usuarios:', error);
-    res.status(500).json({ message: 'Error al obtener usuarios' });
-  }
-});
-
-// Obtener prestadores
-app.get('/api/prestadores', async (req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT id, nombre, username, oficio, ciudad FROM usuarios WHERE rol = "prestador" ORDER BY id DESC');
+    const [rows] = await pool.query(query, params);
     res.json({ prestadores: rows });
   } catch (error) {
-    console.error('Error al obtener prestadores:', error);
+    console.error(error);
     res.status(500).json({ message: 'Error al obtener prestadores' });
   }
 });
+
 
 // Obtener estadísticas
 app.get('/api/estadisticas', async (req, res) => {

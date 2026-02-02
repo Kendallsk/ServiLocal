@@ -204,7 +204,9 @@ const ProviderDashboard = () => {
     return window.location.origin;
   };
 
-  const profileURL = `${getLocalIP()}/prestador/${user?.id || 1}`;
+  // Crear link de WhatsApp con número de teléfono
+  const whatsappURL = `https://wa.me/${user?.telefono?.replace(/\D/g, '')}?text=Hola,%20me%20interesa%20tus%20servicios%20de%20${user?.oficio || 'servicios'}`;
+  const profileURL = whatsappURL;
 
   return (
     <div className="provider-dashboard">
@@ -340,13 +342,13 @@ const ProviderDashboard = () => {
                 <div className="qr-code-wrapper">
                   <QRCodeSVG
                     id="qr-code-svg"
-                    value={profileURL}
+                    value={whatsappURL}
                     size={200}
                     level="H"
                     includeMargin={true}
                   />
                 </div>
-                <p className="qr-url">{profileURL}</p>
+                <p className="qr-url" style={{fontSize: '12px', wordBreak: 'break-all'}}>WhatsApp: {user?.telefono}</p>
                 <div className="qr-actions">
                   <button className="btn-download-qr" onClick={descargarQR}>
                     Descargar

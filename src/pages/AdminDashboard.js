@@ -23,9 +23,9 @@ const AdminDashboard = () => {
   const cargarDatos = async () => {
     try {
       const [resUsuarios, resPrestadores, resEstadisticas] = await Promise.all([
-        axios.get('http://localhost:5000/api/usuarios'),
-        axios.get('http://localhost:5000/api/prestadores'),
-        axios.get('http://localhost:5000/api/estadisticas')
+        axios.get('http://localhost:3000/api/usuarios'),
+        axios.get('http://localhost:3000/api/prestadores'),
+        axios.get('http://localhost:3000/api/estadisticas')
       ]);
       
       setUsuarios(resUsuarios.data.usuarios || []);
@@ -41,7 +41,7 @@ const AdminDashboard = () => {
   const eliminarUsuario = async (id) => {
     if (window.confirm('¿Estás seguro de eliminar este usuario?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/usuarios/${id}`);
+        await axios.delete(`http://localhost:3000/api/usuarios/${id}`);
         mostrarMensaje('Usuario eliminado exitosamente', 'success');
         cargarDatos();
       } catch (error) {
