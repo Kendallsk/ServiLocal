@@ -1,65 +1,533 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const adminName = localStorage.getItem('adminName') || 'Administrador';
+  const [currentUser, setCurrentUser] = useState(null);
+  const [usuarios, setUsuarios] = useState([]);
+  const [prestadores, setPrestadores] = useState([]);
+  const [estadisticas, setEstadisticas] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [mensaje, setMensaje] = useState('');
+
+  useEffect(() => {
+    const user = localStorage.getItem('currentUser');
+    if (user) {
+      setCurrentUser(JSON.parse(user));
+      cargarDatos();
+    }
+  }, []);
+
+  const cargarDatos = async () => {
+    try {
+      const [resUsuarios, resPrestadores, resEstadisticas] = await Promise.all([
+        axios.get('http://localhost:5000/api/usuarios'),
+        axios.get('http://localhost:5000/api/prestadores'),
+        axios.get('http://localhost:5000/api/estadisticas')
+      ]);
+      
+      setUsuarios(resUsuarios.data.usuarios || []);
+      setPrestadores(resPrestadores.data.prestadores || []);
+      setEstadisticas(resEstadisticas.data.estadisticas || {});
+      setLoading(false);
+    } catch (error) {
+      console.error('Error al cargar datos:', error);
+      setLoading(false);
+    }
+  };
+
+  const eliminarUsuario = async (id) => {
+    if (window.confirm('¿Estás seguro de eliminar este usuario?')) {
+      try {
+        await axios.delete(`http://localhost:5000/api/usuarios/${id}`);
+        mostrarMensaje('Usuario eliminado exitosamente', 'success');
+        cargarDatos();
+      } catch (error) {
+        mostrarMensaje('Error al eliminar usuario', 'error');
+      }
+    }
+  };
+
+  const mostrarMensaje = (texto, tipo) => {
+    setMensaje({ texto, tipo });
+    setTimeout(() => setMensaje(''), 3000);
+  };
 
   const handleLogout = () => {
-    localStorage.removeItem('adminLoggedIn');
-    localStorage.removeItem('adminName');
+    localStorage.removeItem('currentUser');
     window.dispatchEvent(new Event('storage'));
     navigate('/login');
   };
 
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#f5f7fa' }}>
+        <div style={{ fontSize: '24px', color: '#00bcd4' }}>Cargando...</div>
+      </div>
+    );
+  }
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #e0f7fa, #fff3e0)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#f5f7fa' }}>
+      {/* Sidebar */}
       <div style={{
-        background: 'white',
-        padding: '40px',
-        borderRadius: '16px',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
-        textAlign: 'center',
-        maxWidth: '600px',
-        width: '100%'
+        width: '250px',
+        background: 'linear-gradient(180deg, #00bcd4 0%, #ff9800 100%)',
+        boxShadow: '2px 0 10px rgba(0,0,0,0.1)',
+        display: 'flex',
+        flexDirection: 'column'
       }}>
-        <h1 style={{
-          fontSize: '36px',
-          background: 'linear-gradient(to right, #00bcd4, #ff9800)',
-          WebkitBackgroundClip: 'text',
-          backgroundClip: 'text',
-          WebkitTextFillColor: 'transparent'
+        {/* Logo */}
+        <div style={{
+          padding: '30px 20px',
+          borderBottom: '1px solid rgba(255,255,255,0.2)',
+          textAlign: 'center'
         }}>
-          ServiLocal - Panel Admin
-        </h1>
-        <h2 style={{margin: '30px 0'}}>Bienvenido, {adminName}</h2>
-        <p style={{fontSize: '20px'}}>¡Login funcionando correctamente! 🎉</p>
-        <p>Backend conectado</p>
-        <button
-          onClick={handleLogout}
-          style={{
-            width: '100%',
-            padding: '14px',
-            background: 'linear-gradient(to right, #00bcd4, #ff9800)',
+          <h1 style={{
+            fontSize: '28px',
             color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '18px',
+            margin: '0 0 5px 0',
             fontWeight: 'bold',
-            cursor: 'pointer',
-            marginTop: '30px'
-          }}
-        >
-          Cerrar Sesión
-        </button>
+            textShadow: '2px 2px 4px rgba(0,0,0,0.2)'
+          }}>
+            ServiLocal
+          </h1>
+          <p style={{ color: 'rgba(255,255,255,0.9)', margin: 0, fontSize: '14px' }}>Panel Admin</p>
+        </div>
+
+        {/* User Info */}
+        <div style={{
+          padding: '20px',
+          borderBottom: '1px solid rgba(255,255,255,0.2)',
+          color: 'white'
+        }}>
+          <div style={{ fontSize: '40px', textAlign: 'center', marginBottom: '10px' }}>👤</div>
+          <div style={{ textAlign: 'center', fontSize: '14px', fontWeight: 'bold' }}>
+            {currentUser?.nombre}
+          </div>
+          <div style={{ textAlign: 'center', fontSize: '12px', opacity: 0.8, marginTop: '5px' }}>
+            {currentUser?.rol}
+          </div>
+        </div>
+
+        {/* Menu Navigation */}
+        <div style={{ flex: 1, padding: '20px 0' }}>
+          <MenuItem 
+            icon="📊" 
+            label="Dashboard" 
+            active={activeTab === 'dashboard'}
+            onClick={() => setActiveTab('dashboard')}
+          />
+          <MenuItem 
+            icon="👥" 
+            label="Usuarios" 
+            active={activeTab === 'usuarios'}
+            onClick={() => setActiveTab('usuarios')}
+          />
+          <MenuItem 
+            icon="🛠️" 
+            label="Prestadores" 
+            active={activeTab === 'prestadores'}
+            onClick={() => setActiveTab('prestadores')}
+          />
+        </div>
+
+        {/* Logout Button */}
+        <div style={{ padding: '20px' }}>
+          <button
+            onClick={handleLogout}
+            style={{
+              width: '100%',
+              padding: '12px',
+              background: 'rgba(255,255,255,0.2)',
+              color: 'white',
+              border: '1px solid rgba(255,255,255,0.3)',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '15px',
+              fontWeight: 'bold',
+              transition: 'all 0.3s'
+            }}
+            onMouseOver={(e) => e.target.style.background = 'rgba(255,255,255,0.3)'}
+            onMouseOut={(e) => e.target.style.background = 'rgba(255,255,255,0.2)'}
+          >
+            🚪 Cerrar Sesión
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div style={{ flex: 1, padding: '30px', overflow: 'auto' }}>
+        {/* Header */}
+        <div style={{
+          background: 'white',
+          borderRadius: '12px',
+          padding: '20px 30px',
+          marginBottom: '25px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+        }}>
+          <h2 style={{ 
+            margin: 0, 
+            color: '#333',
+            fontSize: '24px'
+          }}>
+            {activeTab === 'dashboard' && '📊 Dashboard'}
+            {activeTab === 'usuarios' && '👥 Gestión de Usuarios'}
+            {activeTab === 'prestadores' && '🛠️ Prestadores de Servicios'}
+          </h2>
+        </div>
+
+        {/* Mensaje de notificación */}
+        {mensaje && (
+          <div style={{
+            background: mensaje.tipo === 'success' ? '#4caf50' : '#f44336',
+            color: 'white',
+            padding: '15px 20px',
+            borderRadius: '8px',
+            marginBottom: '20px',
+            fontWeight: 'bold',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            {mensaje.texto}
+          </div>
+        )}
+
+        {/* Dashboard Tab */}
+        {activeTab === 'dashboard' && estadisticas && (
+          <div>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '25px',
+              marginBottom: '30px'
+            }}>
+              <StatCard 
+                icon="👥" 
+                title="Total Usuarios" 
+                value={estadisticas.totalUsuarios} 
+                color="#00bcd4"
+                subtitle="Usuarios registrados"
+              />
+              <StatCard 
+                icon="🛠️" 
+                title="Prestadores" 
+                value={estadisticas.totalPrestadores} 
+                color="#ff9800"
+                subtitle="Proveedores de servicio"
+              />
+              <StatCard 
+                icon="👨‍💼" 
+                title="Clientes" 
+                value={estadisticas.totalClientes} 
+                color="#9c27b0"
+                subtitle="Clientes registrados"
+              />
+            </div>
+
+            {/* Quick Actions */}
+            <div style={{
+              background: 'white',
+              borderRadius: '12px',
+              padding: '30px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              marginTop: '25px'
+            }}>
+              <h3 style={{ marginTop: 0, color: '#333', marginBottom: '20px' }}>⚡ Acciones Rápidas</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+                <QuickActionButton 
+                  icon="👥" 
+                  label="Ver Usuarios" 
+                  onClick={() => setActiveTab('usuarios')}
+                />
+                <QuickActionButton 
+                  icon="🛠️" 
+                  label="Ver Prestadores" 
+                  onClick={() => setActiveTab('prestadores')}
+                />
+                <QuickActionButton 
+                  icon="🔄" 
+                  label="Actualizar Datos" 
+                  onClick={cargarDatos}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Usuarios Tab */}
+        {activeTab === 'usuarios' && (
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '30px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+          }}>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: '#f8f9fa', borderBottom: '2px solid #00bcd4' }}>
+                    <th style={tableHeaderStyle}>ID</th>
+                    <th style={tableHeaderStyle}>Usuario</th>
+                    <th style={tableHeaderStyle}>Nombre</th>
+                    <th style={tableHeaderStyle}>Rol</th>
+                    <th style={tableHeaderStyle}>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {usuarios.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                        📭 No hay usuarios registrados
+                      </td>
+                    </tr>
+                  ) : (
+                    usuarios.map(usuario => (
+                      <tr key={usuario.id} style={{ borderBottom: '1px solid #e9ecef' }}>
+                        <td style={tableCellStyle}><strong>#{usuario.id}</strong></td>
+                        <td style={tableCellStyle}>
+                          <span style={{ 
+                            background: '#e3f2fd', 
+                            padding: '4px 10px', 
+                            borderRadius: '6px',
+                            color: '#0277bd',
+                            fontWeight: '500'
+                          }}>
+                            @{usuario.username}
+                          </span>
+                        </td>
+                        <td style={tableCellStyle}>{usuario.nombre}</td>
+                        <td style={tableCellStyle}>
+                          <span style={{
+                            padding: '6px 14px',
+                            borderRadius: '20px',
+                            background: usuario.rol === 'admin' ? '#ff9800' : '#00bcd4',
+                            color: 'white',
+                            fontSize: '13px',
+                            fontWeight: 'bold',
+                            textTransform: 'uppercase'
+                          }}>
+                            {usuario.rol}
+                          </span>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <button
+                            onClick={() => eliminarUsuario(usuario.id)}
+                            style={{
+                              padding: '8px 16px',
+                              background: '#f44336',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              fontWeight: '500'
+                            }}
+                          >
+                            🗑️ Eliminar
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Prestadores Tab */}
+        {activeTab === 'prestadores' && (
+          <div>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '25px'
+            }}>
+              {prestadores.length === 0 ? (
+                <div style={{ 
+                  gridColumn: '1 / -1', 
+                  textAlign: 'center', 
+                  padding: '60px', 
+                  background: 'white',
+                  borderRadius: '12px',
+                  color: '#999'
+                }}>
+                  <div style={{ fontSize: '60px', marginBottom: '20px' }}>🛠️</div>
+                  <p style={{ fontSize: '18px' }}>No hay prestadores registrados</p>
+                </div>
+              ) : (
+                prestadores.map(prestador => (
+                  <div key={prestador.id} style={{
+                    background: 'white',
+                    padding: '25px',
+                    borderRadius: '12px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                    textAlign: 'center',
+                    transition: 'transform 0.2s',
+                    cursor: 'pointer'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+                  onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                  >
+                    <div style={{ fontSize: '60px', marginBottom: '15px' }}>🛠️</div>
+                    <h3 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '18px' }}>
+                      {prestador.nombre}
+                    </h3>
+                    <p style={{ 
+                      margin: '5px 0', 
+                      color: '#666',
+                      background: '#f5f5f5',
+                      padding: '5px 10px',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}>
+                      @{prestador.username}
+                    </p>
+                    <div style={{ marginTop: '15px' }}>
+                      <span style={{
+                        padding: '6px 16px',
+                        borderRadius: '20px',
+                        background: '#4caf50',
+                        color: 'white',
+                        fontSize: '13px',
+                        fontWeight: 'bold'
+                      }}>
+                        ✅ Activo
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
+};
+
+// Componente MenuItem
+const MenuItem = ({ icon, label, active, onClick }) => (
+  <div
+    onClick={onClick}
+    style={{
+      padding: '15px 25px',
+      color: 'white',
+      cursor: 'pointer',
+      background: active ? 'rgba(255,255,255,0.2)' : 'transparent',
+      borderLeft: active ? '4px solid white' : '4px solid transparent',
+      transition: 'all 0.3s',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      fontSize: '15px',
+      fontWeight: active ? 'bold' : 'normal'
+    }}
+    onMouseOver={(e) => {
+      if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+    }}
+    onMouseOut={(e) => {
+      if (!active) e.currentTarget.style.background = 'transparent';
+    }}
+  >
+    <span style={{ fontSize: '20px' }}>{icon}</span>
+    <span>{label}</span>
+  </div>
+);
+
+// Componente StatCard
+const StatCard = ({ icon, title, value, color, subtitle }) => (
+  <div style={{
+    background: 'white',
+    borderRadius: '12px',
+    padding: '30px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '20px',
+    transition: 'transform 0.2s'
+  }}
+  onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+  onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+  >
+    <div style={{
+      width: '80px',
+      height: '80px',
+      borderRadius: '12px',
+      background: `linear-gradient(135deg, ${color}dd, ${color})`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '40px',
+      boxShadow: `0 4px 12px ${color}40`
+    }}>
+      {icon}
+    </div>
+    <div style={{ flex: 1 }}>
+      <div style={{ fontSize: '36px', fontWeight: 'bold', color: color, marginBottom: '5px' }}>
+        {value}
+      </div>
+      <div style={{ fontSize: '16px', color: '#666', fontWeight: '500' }}>
+        {title}
+      </div>
+      <div style={{ fontSize: '13px', color: '#999', marginTop: '3px' }}>
+        {subtitle}
+      </div>
+    </div>
+  </div>
+);
+
+// Componente QuickActionButton
+const QuickActionButton = ({ icon, label, onClick }) => (
+  <button
+    onClick={onClick}
+    style={{
+      padding: '15px 20px',
+      background: 'linear-gradient(to right, #00bcd4, #ff9800)',
+      color: 'white',
+      border: 'none',
+      borderRadius: '8px',
+      cursor: 'pointer',
+      fontSize: '15px',
+      fontWeight: 'bold',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      justifyContent: 'center',
+      transition: 'all 0.3s',
+      boxShadow: '0 2px 8px rgba(0,188,212,0.3)'
+    }}
+    onMouseOver={(e) => {
+      e.currentTarget.style.transform = 'translateY(-2px)';
+      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,188,212,0.4)';
+    }}
+    onMouseOut={(e) => {
+      e.currentTarget.style.transform = 'translateY(0)';
+      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,188,212,0.3)';
+    }}
+  >
+    <span style={{ fontSize: '20px' }}>{icon}</span>
+    <span>{label}</span>
+  </button>
+);
+
+const tableHeaderStyle = {
+  padding: '15px 12px',
+  textAlign: 'left',
+  fontWeight: 'bold',
+  color: '#333',
+  fontSize: '14px',
+  textTransform: 'uppercase',
+  letterSpacing: '0.5px'
+};
+
+const tableCellStyle = {
+  padding: '15px 12px',
+  textAlign: 'left',
+  color: '#555',
+  fontSize: '14px'
 };
 
 export default AdminDashboard;

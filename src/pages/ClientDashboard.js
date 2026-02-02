@@ -67,7 +67,7 @@ const ClientDashboard = () => {
           </button>
         </div>
 
-        {/* Botón cerrar sesión */}
+        {/* Botón  sesión */}
         <button
           onClick={handleLogout}
           className="btn-primary"

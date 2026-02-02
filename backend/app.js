@@ -1,16 +1,17 @@
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
+require('dotenv').config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'servilocal',
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASS || '',
+  database: process.env.DB_NAME || 'servilocal2',
   waitForConnections: true,
   connectionLimit: 10,
 });
@@ -100,8 +101,109 @@ app.get('/api/prestadores', async (req, res) => {
   } catch {
     res.status(500).json({ message: 'Error del servidor' });
   }
+}
+
+// Obtener todos los usuarios
+app.get('/api/usuarios', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT id, nombre, username, rol FROM usuarios ORDER BY id DESC');
+    res.json({ usuarios: rows });
+  } catch (error) {
+    console.error('Error al obtener usuarios:', error);
+    res.status(500).json({ message: 'Error al obtener usuarios' });
+  }
 });
 
-app.listen(3000, () => {
-  console.log('Backend corriendo en http://localhost:3000');
+// Obtener prestadores
+app.get('/api/prestadores', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT id, nombre, username, oficio, ciudad FROM usuarios WHERE rol = "prestador" ORDER BY id DESC');
+    res.json({ prestadores: rows });
+  } catch (error) {
+    console.error('Error al obtener prestadores:', error);
+    res.status(500).json({ message: 'Error al obtener prestadores' });
+  }
+});
+
+// Obtener estadísticas
+app.get('/api/estadisticas', async (req, res) => {
+  try {
+    const [totalUsuarios] = await pool.query('SELECT COUNT(*) as count FROM usuarios');
+    const [totalPrestadores] = await pool.query('SELECT COUNT(*) as count FROM usuarios WHERE rol = "prestador"');
+    const [totalClientes] = await pool.query('SELECT COUNT(*) as count FROM usuarios WHERE rol = "cliente"');
+    
+    res.json({
+      estadisticas: {
+        totalUsuarios: totalUsuarios[0].count,
+        totalPrestadores: totalPrestadores[0].count,
+        totalClientes: totalClientes[0].count
+      }
+    });
+  } catch (error) {
+    console.error('Error al obtener estadísticas:', error);
+    res.status(500).json({ message: 'Error al obtener estadísticas' });
+  }
+});
+
+// Obtener prestador por ID
+app.get('/api/prestador/:id', async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    const [rows] = await pool.query('SELECT * FROM usuarios WHERE id = ? AND rol = "prestador"', [id]);
+    
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Prestador no encontrado' });
+    }
+    
+    res.json({ prestador: rows[0] });
+  } catch (error) {
+    console.error('Error al obtener prestador:', error);
+    res.status(500).json({ message: 'Error al obtener prestador' });
+  }
+});
+
+// Actualizar datos del prestador
+app.put('/api/prestador/:id', async (req, res) => {
+  const { id } = req.params;
+  const { nombre, cedula, telefono, oficio, ciudad, direccion, dias_atencion, horario_inicio, horario_fin } = req.body;
+  
+  try {
+    const [result] = await pool.query(
+      'UPDATE usuarios SET nombre = ?, cedula = ?, telefono = ?, oficio = ?, ciudad = ?, direccion = ?, dias_atencion = ?, horario_inicio = ?, horario_fin = ? WHERE id = ? AND rol = "prestador"',
+      [nombre, cedula, telefono, oficio, ciudad, direccion, dias_atencion, horario_inicio, horario_fin, id]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Prestador no encontrado' });
+    }
+    
+    res.json({ success: true, message: 'Datos actualizados correctamente' });
+  } catch (error) {
+    console.error('Error al actualizar prestador:', error);
+    res.status(500).json({ message: 'Error al actualizar prestador' });
+  }
+});
+
+// Eliminar usuario
+app.delete('/api/usuarios/:id', async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    const [result] = await pool.query('DELETE FROM usuarios WHERE id = ?', [id]);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    
+    res.json({ success: true, message: 'Usuario eliminado' });
+  } catch (error) {
+    console.error('Error al eliminar usuario:', error);
+    res.status(500).json({ message: 'Error al eliminar usuario' });
+  }
+});
+
+const PORT = 5000;
+app.listen(PORT, () => {
+  console.log(`Backend corriendo en http://localhost:${PORT}`);
 });

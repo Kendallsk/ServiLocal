@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import ProviderDashboard from './pages/ProviderDashboard';
+import ProviderProfile from './pages/ProviderProfile';
 import Register from './pages/Register';
 import RegisterCliente from './pages/RegisterCliente';
 import ClientDashboard from './pages/ClientDashboard';
@@ -48,6 +49,10 @@ function App() {
         <Route path="/servicios/:categoria" element={<ServicesByCategory />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        
+        {/* Ruta pública para ver perfil de prestador */}
+        <Route path="/prestador/:id" element={<ProviderProfile />} />
+        
         <Route
           path="/admin"
           element={currentUser && currentUser.rol === 'admin' ? <AdminDashboard /> : <Navigate to="/login" />}
