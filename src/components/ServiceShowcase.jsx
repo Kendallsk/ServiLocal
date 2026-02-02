@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import CategoryCarousel from './CategoryCarousel';
 import SearchBar from './SearchBar';
 
@@ -9,15 +10,15 @@ const ServiceShowcase = ({
   searchQuery,
   setSearchQuery,
 }) => {
+  const navigate = useNavigate();
+
   if (!activeCategory) return null;
 
   return (
     <section
       style={{
         position: 'relative',
-        minHeight: '500px',
-        marginTop: '0px',
-        borderRadius: '0px',
+        minHeight: '520px',
         overflow: 'hidden',
       }}
     >
@@ -36,7 +37,7 @@ const ServiceShowcase = ({
         }}
       />
 
-      {/* Overlay oscuro */}
+      {/* Overlay */}
       <div
         style={{
           position: 'absolute',
@@ -51,67 +52,84 @@ const ServiceShowcase = ({
         style={{
           position: 'relative',
           zIndex: 2,
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '0px',
+          padding: '32px 48px',
         }}
       >
-        {/* SearchBar dentro del fondo */}
-        <div style={{ padding: '24px 48px' }}>
-          <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-        </div>
+        {/* Search */}
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
 
-        {/* Contenido principal */}
         <div
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
-            gap: '24px',
-            padding: '24px 48px 48px',
+            gap: '32px',
+            marginTop: '32px',
             alignItems: 'center',
-            flex: 1,
           }}
         >
-        {/* Texto izquierda */}
-        <div style={{ color: 'white', maxWidth: '520px' }}>
-          <motion.h2
-            key={activeCategory.nombre}
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.4 }}
-            style={{
-              fontSize: '42px',
-              fontWeight: 700,
-              marginBottom: '16px',
-            }}
-          >
-            {activeCategory.nombre}
-          </motion.h2>
+          {/* Texto izquierda */}
+          <div style={{ color: 'white', maxWidth: '520px' }}>
+            <motion.h2
+              key={activeCategory.nombre}
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.4 }}
+              style={{
+                fontSize: '42px',
+                fontWeight: 700,
+                marginBottom: '16px',
+              }}
+            >
+              {activeCategory.nombre}
+            </motion.h2>
 
-          <motion.p
-            key={activeCategory.descripcion}
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            style={{
-              fontSize: '18px',
-              lineHeight: 1.6,
-              opacity: 0.95,
-            }}
-          >
-            {activeCategory.descripcion}
-          </motion.p>
-        </div>
+            <motion.p
+              key={activeCategory.descripcion}
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              style={{
+                fontSize: '18px',
+                lineHeight: 1.6,
+                opacity: 0.95,
+              }}
+            >
+              {activeCategory.descripcion}
+            </motion.p>
 
-        {/* Carousel abajo/derecha */}
-        <div style={{ alignSelf: 'flex-end' }}>
-          <CategoryCarousel
-            categorias={categorias}
-            onSelectCategory={setActiveCategory}
-            activeCategory={activeCategory}
-            compact
-          />
-        </div>
+            {/* BOTÓN VER MÁS */}
+            <button
+              onClick={() =>
+                navigate(`/servicios/${activeCategory.slug}`)
+              }
+              style={{
+                marginTop: '24px',
+                padding: '12px 30px',
+                borderRadius: '30px',
+                border: 'none',
+                background: '#00bcd4',
+                color: 'white',
+                fontSize: '16px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Ver más
+            </button>
+          </div>
+
+          {/* Carrusel derecha */}
+          <div style={{ alignSelf: 'flex-end' }}>
+            <CategoryCarousel
+              categorias={categorias}
+              activeCategory={activeCategory}
+              onSelectCategory={setActiveCategory}
+              compact
+            />
+          </div>
         </div>
       </div>
     </section>

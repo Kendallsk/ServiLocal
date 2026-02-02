@@ -8,6 +8,9 @@ import Register from './pages/Register';
 import RegisterCliente from './pages/RegisterCliente';
 import ClientDashboard from './pages/ClientDashboard';
 import 'leaflet/dist/leaflet.css';
+import ServicesByCategory from "./pages/ServicesByCategory";
+
+
 
 
 
@@ -42,6 +45,7 @@ function App() {
       <Routes>
         
         <Route path="/" element={<Home />} />
+        <Route path="/servicios/:categoria" element={<ServicesByCategory />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route
