@@ -1,17 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosPublic from '../api/axiosPublic';
+import { toast } from 'react-toastify';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
@@ -44,7 +43,8 @@ const Login = () => {
         }
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al conectar');
+      const errorMsg = err.response?.data?.message || 'Error al conectar';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -119,8 +119,6 @@ const Login = () => {
               borderRadius: '8px'
             }}
           />
-
-          {error && <p style={{ color: 'red' }}>{error}</p>}
 
           <button
             type="submit"

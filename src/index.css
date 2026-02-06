@@ -84,6 +84,24 @@ button:hover {
   opacity: 0.9;
 }
 
+/* Toastify: evitar que el estilo global de button rompa el cierre */
+.Toastify__close-button {
+  width: auto;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: inherit;
+  border: none;
+  border-radius: 0;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.Toastify__close-button > svg {
+  display: block;
+}
+
 .error {
   color: red;
   margin: 15px 0;

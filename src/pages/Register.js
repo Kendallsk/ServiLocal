@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import RegisterForm from '../components/RegisterForm';
 import axiosPublic from '../api/axiosPublic';
+import { toast } from 'react-toastify';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -30,6 +31,7 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
       const res = await axiosPublic.post(
@@ -38,11 +40,23 @@ const Register = () => {
 );
 
       if (res.data.success) {
-        setSuccess('Registro exitoso. Tu cuenta está pendiente de aprobación.');
+        const successMsg = 'Registro exitoso. Tu cuenta está pendiente de aprobación.';
+        setSuccess(successMsg);
+        toast.success(successMsg);
         setTimeout(() => navigate('/login'), 5000);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al registrar');
+      const backendMsg = err.response?.data?.message || '';
+      const normalized = backendMsg.toLowerCase();
+      const isDuplicate =
+        normalized.includes('ya existe') ||
+        normalized.includes('duplic') ||
+        normalized.includes('registrad');
+      const errorMsg = isDuplicate
+        ? 'Este usuario ya existe.'
+        : backendMsg || 'Error al registrar';
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -64,14 +78,13 @@ const Register = () => {
         <h1 className="gradient-title">ServiLocal</h1>
         <h2 className="subtitle">Registro de Prestador</h2>
 
-        {success && <p className="success-msg">{success}</p>}
-
         <RegisterForm
           formData={formData}
           handleChange={handleChange}
           handleSubmit={handleSubmit}
           loading={loading}
           error={error}
+          showInlineError={false}
         />
       </div>
     </div>

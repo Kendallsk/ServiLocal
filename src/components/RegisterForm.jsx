@@ -6,7 +6,8 @@ const RegisterForm = ({
   handleChange,
   handleSubmit,
   loading,
-  error
+  error,
+  showInlineError = true
 }) => {
   return (
     <form onSubmit={handleSubmit}>
@@ -45,7 +46,7 @@ const RegisterForm = ({
         }
       />
 
-      {error && <p className="error-msg">{error}</p>}
+      {showInlineError && error && <p className="error-msg">{error}</p>}
 
       <button type="submit" disabled={loading} className="btn-primary">
         {loading ? 'Registrando...' : 'Registrarse'}

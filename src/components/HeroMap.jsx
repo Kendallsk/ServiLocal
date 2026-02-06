@@ -17,13 +17,15 @@ const ChangeView = ({ center }) => {
 };
 
 const HeroMap = ({ mapCenter, markers, activeCategory }) => {
+  const topGap = 25;
+
   return (
     <section
       style={{
         position: 'relative',
         height: '100vh',
-        marginTop: '80px',
-        padding: '0 32px',
+        marginTop: '55px',
+        padding: `${topGap}px 32px 0`,
         overflow: 'hidden',
       }}
     >
@@ -85,7 +87,7 @@ const HeroMap = ({ mapCenter, markers, activeCategory }) => {
           position: 'relative',
           zIndex: 2,
           width: '100%',
-          height: '100%',
+          height: `calc(100% - ${topGap}px)`,
           borderRadius: '24px',
           overflow: 'hidden',
         }}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
+import { toast } from 'react-toastify';
 import './ProviderDashboard.css';
 
 const ProviderDashboard = () => {
@@ -101,13 +102,13 @@ const ProviderDashboard = () => {
         const updatedUser = { ...user, ...formData };
         setUser(updatedUser);
         setIsEditing(false);
-        alert('Datos actualizados correctamente');
+        toast.success('Datos actualizados correctamente');
       } else {
-        alert('Error al actualizar los datos');
+        toast.error('Error al actualizar los datos');
       }
     } catch (error) {
       console.error('Error al guardar:', error);
-      alert('Error al guardar los cambios');
+      toast.error('Error al guardar los cambios');
     }
   };
 

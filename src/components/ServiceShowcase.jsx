@@ -18,7 +18,7 @@ const ServiceShowcase = ({
     <section
       style={{
         position: 'relative',
-        minHeight: '520px',
+        minHeight: '640px',
         overflow: 'hidden',
       }}
     >

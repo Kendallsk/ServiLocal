@@ -58,6 +58,18 @@ app.post('/api/auth/register/prestador', async (req, res) => {
   try {
     const horarioData = JSON.parse(horario);
 
+    const usernameNormalized = String(username || '').trim();
+    const cedulaNormalized = String(cedula || '').trim();
+
+    // Validar usuario duplicado
+    const [existingUser] = await pool.query(
+      'SELECT id FROM usuarios WHERE username = ? LIMIT 1',
+      [usernameNormalized]
+    );
+    if (existingUser.length > 0) {
+      return res.status(409).json({ message: 'Este usuario ya existe' });
+    }
+
     await pool.query(
       `INSERT INTO usuarios 
       (nombre, cedula, username, password, telefono, oficio, ciudad, direccion,
@@ -65,8 +77,8 @@ app.post('/api/auth/register/prestador', async (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'prestador')`,
       [
         nombre,
-        cedula,
-        username,
+        cedulaNormalized,
+        usernameNormalized,
         password,
         telefono,
         oficio,

@@ -10,6 +10,8 @@ import RegisterCliente from './pages/RegisterCliente';
 import ClientDashboard from './pages/ClientDashboard';
 import 'leaflet/dist/leaflet.css';
 import ServicesByCategory from "./pages/ServicesByCategory";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 
@@ -43,6 +45,7 @@ function App() {
 
   return (
     <Router>
+      <ToastContainer position="top-right" autoClose={4000} />
       <Routes>
         
         <Route path="/" element={<Home />} />
