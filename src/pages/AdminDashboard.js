@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axiosPublic from '../api/axiosPublic';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
   const [usuarios, setUsuarios] = useState([]);
   const [prestadores, setPrestadores] = useState([]);
+  const [prestadoresPendientes, setPrestadoresPendientes] = useState([]);
   const [estadisticas, setEstadisticas] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -22,15 +23,17 @@ const AdminDashboard = () => {
 
   const cargarDatos = async () => {
     try {
-      const [resUsuarios, resPrestadores, resEstadisticas] = await Promise.all([
-        axios.get('http://localhost:3000/api/usuarios'),
-        axios.get('http://localhost:3000/api/prestadores'),
-        axios.get('http://localhost:3000/api/estadisticas')
+      const [resUsuarios, resPrestadores, resEstadisticas, resPendientes] = await Promise.all([
+        axiosPublic.get('/api/usuarios'),
+        axiosPublic.get('/api/prestadores'),
+        axiosPublic.get('/api/estadisticas'),
+        axiosPublic.get('/api/prestadores/pendientes')
       ]);
       
       setUsuarios(resUsuarios.data.usuarios || []);
       setPrestadores(resPrestadores.data.prestadores || []);
       setEstadisticas(resEstadisticas.data.estadisticas || {});
+      setPrestadoresPendientes(resPendientes.data.prestadores || []);
       setLoading(false);
     } catch (error) {
       console.error('Error al cargar datos:', error);
@@ -41,11 +44,35 @@ const AdminDashboard = () => {
   const eliminarUsuario = async (id) => {
     if (window.confirm('¿Estás seguro de eliminar este usuario?')) {
       try {
-        await axios.delete(`http://localhost:3000/api/usuarios/${id}`);
+        await axiosPublic.delete(`/api/usuarios/${id}`);
         mostrarMensaje('Usuario eliminado exitosamente', 'success');
         cargarDatos();
       } catch (error) {
         mostrarMensaje('Error al eliminar usuario', 'error');
+      }
+    }
+  };
+
+  const aprobarPrestador = async (id) => {
+    if (window.confirm('¿Deseas aprobar este prestador?')) {
+      try {
+        await axiosPublic.put(`/api/prestadores/${id}/aprobar`);
+        mostrarMensaje('Prestador aprobado exitosamente', 'success');
+        cargarDatos();
+      } catch (error) {
+        mostrarMensaje('Error al aprobar prestador', 'error');
+      }
+    }
+  };
+
+  const rechazarPrestador = async (id) => {
+    if (window.confirm('¿Deseas rechazar este prestador? El usuario no podrá acceder al sistema.')) {
+      try {
+        await axiosPublic.put(`/api/prestadores/${id}/rechazar`);
+        mostrarMensaje('Prestador rechazado', 'success');
+        cargarDatos();
+      } catch (error) {
+        mostrarMensaje('Error al rechazar prestador', 'error');
       }
     }
   };
@@ -132,6 +159,13 @@ const AdminDashboard = () => {
             active={activeTab === 'prestadores'}
             onClick={() => setActiveTab('prestadores')}
           />
+          <MenuItem 
+            icon="⏳" 
+            label="Aprobar Prestadores" 
+            active={activeTab === 'aprobar'}
+            onClick={() => setActiveTab('aprobar')}
+            badge={prestadoresPendientes.length}
+          />
         </div>
 
         {/* Logout Button */}
@@ -176,6 +210,7 @@ const AdminDashboard = () => {
             {activeTab === 'dashboard' && '📊 Dashboard'}
             {activeTab === 'usuarios' && '👥 Gestión de Usuarios'}
             {activeTab === 'prestadores' && '🛠️ Prestadores de Servicios'}
+            {activeTab === 'aprobar' && '⏳ Aprobar Prestadores'}
           </h2>
         </div>
 
@@ -403,13 +438,166 @@ const AdminDashboard = () => {
             </div>
           </div>
         )}
+
+        {/* Tab Aprobar Prestadores */}
+        {activeTab === 'aprobar' && (
+          <div>
+            {prestadoresPendientes.length === 0 ? (
+              <div style={{
+                background: 'white',
+                borderRadius: '12px',
+                padding: '60px 30px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '80px', marginBottom: '20px' }}>✅</div>
+                <h3 style={{ color: '#333', marginBottom: '10px' }}>No hay prestadores pendientes</h3>
+                <p style={{ color: '#666' }}>Todos los prestadores han sido procesados</p>
+              </div>
+            ) : (
+              <div>
+                <div style={{
+                  background: '#fff3cd',
+                  border: '1px solid #ffc107',
+                  borderRadius: '8px',
+                  padding: '15px',
+                  marginBottom: '20px',
+                  color: '#856404'
+                }}>
+                  ⚠️ Tienes <strong>{prestadoresPendientes.length}</strong> prestador(es) esperando aprobación
+                </div>
+                
+                <div style={{ display: 'grid', gap: '20px' }}>
+                  {prestadoresPendientes.map(prestador => (
+                    <div key={prestador.id} style={{
+                      background: 'white',
+                      borderRadius: '12px',
+                      padding: '25px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                      display: 'grid',
+                      gridTemplateColumns: 'auto 1fr auto',
+                      gap: '25px',
+                      alignItems: 'center'
+                    }}>
+                      {/* Foto del prestador */}
+                      <div style={{
+                        width: '100px',
+                        height: '100px',
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        background: '#f0f0f0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {prestador.foto ? (
+                          <img 
+                            src={`http://localhost:5000${prestador.foto}`}
+                            alt={prestador.nombre}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <span style={{ fontSize: '50px' }}>👤</span>
+                        )}
+                      </div>
+
+                      {/* Información del prestador */}
+                      <div>
+                        <h3 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '20px' }}>
+                          {prestador.nombre}
+                        </h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px' }}>
+                          <div>
+                            <strong>Usuario:</strong> @{prestador.username}
+                          </div>
+                          <div>
+                            <strong>Cédula:</strong> {prestador.cedula}
+                          </div>
+                          <div>
+                            <strong>Oficio:</strong> {prestador.oficio}
+                          </div>
+                          <div>
+                            <strong>Teléfono:</strong> {prestador.telefono}
+                          </div>
+                          <div>
+                            <strong>Ciudad:</strong> {prestador.ciudad}
+                          </div>
+                          <div>
+                            <strong>Dirección:</strong> {prestador.direccion}
+                          </div>
+                          <div style={{ gridColumn: '1 / -1' }}>
+                            <strong>Horario:</strong> {prestador.dias_atencion} - {prestador.horario_inicio} a {prestador.horario_fin}
+                          </div>
+                        </div>
+                        <div style={{
+                          marginTop: '10px',
+                          padding: '8px 12px',
+                          background: '#fff3cd',
+                          borderRadius: '6px',
+                          display: 'inline-block',
+                          fontSize: '13px',
+                          fontWeight: 'bold',
+                          color: '#856404'
+                        }}>
+                          ⏳ Estado: Pendiente
+                        </div>
+                      </div>
+
+                      {/* Botones de acción */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <button
+                          onClick={() => aprobarPrestador(prestador.id)}
+                          style={{
+                            padding: '12px 24px',
+                            background: '#4caf50',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            transition: 'background 0.3s',
+                            whiteSpace: 'nowrap'
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.background = '#45a049'}
+                          onMouseOut={(e) => e.currentTarget.style.background = '#4caf50'}
+                        >
+                          ✅ Aprobar
+                        </button>
+                        <button
+                          onClick={() => rechazarPrestador(prestador.id)}
+                          style={{
+                            padding: '12px 24px',
+                            background: '#f44336',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            transition: 'background 0.3s',
+                            whiteSpace: 'nowrap'
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.background = '#da190b'}
+                          onMouseOut={(e) => e.currentTarget.style.background = '#f44336'}
+                        >
+                          ❌ Rechazar
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 // Componente MenuItem
-const MenuItem = ({ icon, label, active, onClick }) => (
+const MenuItem = ({ icon, label, active, onClick, badge }) => (
   <div
     onClick={onClick}
     style={{
@@ -421,6 +609,7 @@ const MenuItem = ({ icon, label, active, onClick }) => (
       transition: 'all 0.3s',
       display: 'flex',
       alignItems: 'center',
+      justifyContent: 'space-between',
       gap: '12px',
       fontSize: '15px',
       fontWeight: active ? 'bold' : 'normal'
@@ -432,8 +621,24 @@ const MenuItem = ({ icon, label, active, onClick }) => (
       if (!active) e.currentTarget.style.background = 'transparent';
     }}
   >
-    <span style={{ fontSize: '20px' }}>{icon}</span>
-    <span>{label}</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <span style={{ fontSize: '20px' }}>{icon}</span>
+      <span>{label}</span>
+    </div>
+    {badge > 0 && (
+      <span style={{
+        background: '#ff5252',
+        color: 'white',
+        borderRadius: '12px',
+        padding: '2px 8px',
+        fontSize: '12px',
+        fontWeight: 'bold',
+        minWidth: '20px',
+        textAlign: 'center'
+      }}>
+        {badge}
+      </span>
+    )}
   </div>
 );
 
