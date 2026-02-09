@@ -41,7 +41,11 @@ const ProviderProfile = () => {
     if (provider?.telefono) {
       const message = `Hola ${provider.nombre}, vi tu perfil en ServiLocal y me interesa tu servicio de ${provider.oficio}`;
       // Limpiar el número de teléfono (quitar espacios, guiones, etc)
-      const cleanPhone = provider.telefono.replace(/\D/g, '');
+      let cleanPhone = provider.telefono.replace(/\D/g, '');
+      // Si empieza con 0, quitarlo (números locales en Ecuador)
+      if (cleanPhone.startsWith('0')) {
+        cleanPhone = cleanPhone.substring(1);
+      }
       // Si el número no empieza con código de país, agregar 593 (Ecuador)
       const phone = cleanPhone.startsWith('593') ? cleanPhone : `593${cleanPhone}`;
       window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
@@ -91,7 +95,15 @@ const ProviderProfile = () => {
             {/* Avatar y nombre */}
             <div className="profile-hero">
               <div className="profile-avatar-public">
-                <div className="avatar-circle"></div>
+                {provider.foto ? (
+                  <img 
+                    src={`http://localhost:5000${provider.foto}`} 
+                    alt={provider.nombre} 
+                    className="avatar-image"
+                  />
+                ) : (
+                  <div className="avatar-circle">👤</div>
+                )}
               </div>
               <h2 className="provider-name">{provider.nombre}</h2>
               <p className="provider-role">{provider.oficio}</p>

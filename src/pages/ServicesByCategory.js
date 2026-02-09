@@ -14,6 +14,19 @@ const ServicesByCategory = () => {
       ? "http://localhost:5000"
       : `http://${window.location.hostname}:5000`;
 
+  // Formatear teléfono para WhatsApp con código de país
+  const formatPhoneForWhatsApp = (phone) => {
+    if (!phone) return '';
+    let cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.startsWith('0')) {
+      cleanPhone = cleanPhone.substring(1);
+    }
+    if (!cleanPhone.startsWith('593')) {
+      cleanPhone = '593' + cleanPhone;
+    }
+    return cleanPhone;
+  };
+
   const categoryBackgrounds = {
     electricista:
       "https://plus.unsplash.com/premium_photo-1661908782924-de673a5c6988?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8ZWxlY3RyaWNpc3RhfGVufDB8fDB8fHww",
@@ -239,7 +252,7 @@ useEffect(() => {
               <p><strong>Días de atención:</strong> {selected.dias_atencion}</p>
 
               <a
-                href={`https://wa.me/593${selected.telefono}`}
+                href={`https://wa.me/${formatPhoneForWhatsApp(selected.telefono)}?text=Hola,%20vi%20tu%20anuncio%20en%20ServiLocal%20y%20me%20interesa%20tu%20servicio%20de%20${selected.oficio}`}
                 target="_blank"
                 rel="noreferrer"
                 style={{

@@ -239,6 +239,33 @@ app.delete('/api/usuarios/:id', async (req, res) => {
   }
 });
 
+// Subir/actualizar foto de perfil del prestador
+app.post('/api/prestador/upload-foto', upload.single('foto'), async (req, res) => {
+  const { userId } = req.body;
+  
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No se recibió ninguna foto' });
+    }
+    
+    const fotoPath = `/uploads/${req.file.filename}`;
+    
+    const [result] = await pool.query(
+      'UPDATE usuarios SET foto = ? WHERE id = ? AND rol = "prestador"',
+      [fotoPath, userId]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Prestador no encontrado' });
+    }
+    
+    res.json({ success: true, fotoPath, message: 'Foto actualizada correctamente' });
+  } catch (error) {
+    console.error('Error al subir foto:', error);
+    res.status(500).json({ message: 'Error al subir la foto' });
+  }
+});
+
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     return res.status(400).json({ message: err.message });
